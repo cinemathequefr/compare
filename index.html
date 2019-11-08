@@ -105,10 +105,13 @@
 
   let setLength = _.keys(typefaces).length;
 
+  _(setLength).range(1).forEach(d => {
+    let img = document.createElement("img");
+    img.src = `img/${d}.jpg`;
+  });
 
   const set = _(setLength)
     .range(1)
-    // .map(d => d + 1)
     .thru(d => {
       return _(d)
         .map(e => _(d).map(f => [e, f]).value())
@@ -120,13 +123,19 @@
     .uniqBy(d => _(d)
       .sort()
       .join()
-    ) // uniqBy : permet de dédoublonner les symétriques ([1, 4] et [4, 1] : ne garde que le premier)
+    ) // uniqBy : permet de dédoublonner les symétriques (ex. [1, 4] et [4, 1] : ne garde que le premier)
     .value();
 
   let step = 0;
   let total = set.length - 1;
   let rec = [];
-  $(".card, .joker").on("click", e => runStep(e));
+
+  // $(run);
+
+  function run() {
+    $(".card, .joker").on("click", e => runStep(e));
+    display(step);
+  }
 
   function runStep(e) {
 
@@ -190,8 +199,6 @@
       console.log(result);
     }
   }
-
-  display(step);
 
   function display(_step) {
     $("#card-1").html(`<img data-id="${set[_step][0]}" src="img/${set[_step][0]}.jpg">`);
