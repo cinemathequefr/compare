@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title></title>
+
+  <style>
+    body {
+      background-color: #ccc;
+      color: #333;
+      font-family: sans-serif;
+      font-weight: 600;
+    }
+
+    .container {
+      overflow: hidden;
+      position: relative;
+      width: 95%;
+      margin: 12px auto;
+      height: 90vh;
+    }
+
+    .joker {
+      font-family: sans-serif;
+      font-size: 1.125rem;
+      font-weight: 600;
+      position: absolute;
+      width: 20%;
+      margin: 0px auto;
+      padding: 4px;
+      bottom: 48px;
+      left: 40%;
+      background-color: #fff;
+      border: solid 3px transparent;
+      text-align: center;
+      transition: 0.15s;
+      cursor: pointer;
+      box-sizing: border-box;
+    }
+
+    .counter {
+      position: absolute;
+      margin: 0px auto;
+      padding: 4px;
+      bottom: 48px;
+      left: 48px;
+      font-family: sans-serif;
+      font-size: 1.125rem;
+      font-weight: 600;
+    }
+
+    .card {
+      width: 50%;
+      overflow: hidden;
+      padding: 12px;
+      float: left;
+      background-color: #fff;
+      box-sizing: border-box;
+      border: solid 3px transparent;
+      transition: 0.15s;
+    }
+
+    .card:hover,
+    .joker:hover {
+      border: solid 3px #c33;
+    }
+
+    .card>img {
+      display: block;
+      width: auto;
+      cursor: pointer;
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <div class="container">
+    <div class="card" id="card-1">
+    </div>
+    <div class="card" id="card-2">
+    </div>
+  </div>
+  <div class="counter"></div>
+  <div class="joker">Aucune préférence</div>
+</body>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.15/lodash.min.js"></script> -->
+<script src="lodash.js"></script>
+
+<script>
+  const typefaces = {
+    "1": "Open Sans",
+    "2": "IBM Plex Sans",
+    "3": "Segoe UI",
+    "4": "Roboto",
+    "5": "Source Sans Pro",
+    "6": "Nunito Sans",
+    "7": "Lato",
+    "8": "Sero Pro"
+  };
+
+  let setLength = _.keys(typefaces).length;
+
+
+  const set = _(setLength)
+    .range(1)
+    // .map(d => d + 1)
+    .thru(d => {
+      return _(d)
+        .map(e => _(d).map(f => [e, f]).value())
+        .flatten()
+        .filter(e => e[0] !== e[1])
+        .value()
+    })
+    .shuffle()
+    .uniqBy(d => _(d)
+      .sort()
+      .join()
+    ) // uniqBy : permet de dédoublonner les symétriques ([1, 4] et [4, 1] : ne garde que le premier)
+    .value();
+
+  let step = 0;
+  let total = set.length - 1;
+  let rec = [];
+  $(".card, .joker").on("click", e => runStep(e));
+
+  function runStep(e) {
+
+    let value = Number(e.target.dataset.id);
+
+    if (!isNaN(value)) { // Si une valeur a été choisie, on l'ajoute (le cas contraire correspond à ne pas choisir)
+      rec.push(value);
+    }
+
+    step = step + 1;
+    if (step <= total) {
+      display(step);
+    } else {
+      $(".card, .joker").off("click");
+
+      let stats = _(rec)
+        .thru(d => {
+          return _(d)
+            .sort()
+            .reduce((acc, v) => {
+              if (acc.length === 0) {
+                acc.push([v, 1]);
+              } else {
+                if (acc[acc.length - 1][0] === v) {
+                  acc[acc.length - 1][1] = acc[acc.length - 1][1] + 1;
+                } else {
+                  acc.push([v, 1]);
+                }
+              }
+              return acc;
+            }, []);
+        })
+        .tap(d => {
+          console.log(JSON.stringify(d));
+        })
+
+        // Ajoute aux résultats les valeurs non choisies, affectées au score 0 (pour qu'ils soient présents dans le résultat final).
+        .thru(d =>
+          _(setLength)
+          .range(1)
+          .difference(
+            _(d)
+            .map(e => e[0])
+            .value()
+          )
+          .map(e => [e, 0])
+          .concat(d)
+          .value()
+        )
+
+        .sortBy(d => d[1])
+        .reverse()
+        .map(d => [typefaces[d[0]], Math.round((d[1] / set.length) * 100)])
+        .value();
+
+      let result = _.join(_(stats).map(d => `${d[0]}: ${d[1]}%`).value(), "\n");
+
+      alert("Terminé.");
+      alert(result);
+      console.log(stats);
+      console.log(result);
+    }
+  }
+
+  display(step);
+
+  function display(_step) {
+    $("#card-1").html(`<img data-id="${set[_step][0]}" src="img/${set[_step][0]}.jpg">`);
+    $("#card-2").html(`<img data-id="${set[_step][1]}" src="img/${set[_step][1]}.jpg">`);
+    $(".counter").html(`${_step + 1 } / ${total + 1}`);
+  }
+</script>
+
+</html>

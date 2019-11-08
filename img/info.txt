@@ -1,0 +1,8 @@
+1 = Open Sans
+2 = IBM Plex Sans
+3 = Segoe UI
+4 = Roboto
+5 = Source Sans Pro
+6 = Nunito Sans
+7 = Lato
+8 = Sero Pro
